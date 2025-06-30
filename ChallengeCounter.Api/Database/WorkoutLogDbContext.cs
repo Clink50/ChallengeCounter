@@ -16,7 +16,7 @@ public class WorkoutLogDbContext(DbContextOptions<WorkoutLogDbContext> options) 
 
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.UserId);
             entity.Property(e => e.ExerciseDate).IsRequired();
             entity.Property(e => e.Pushups).IsRequired();

@@ -1,6 +1,12 @@
 namespace ChallengeCounter.Api.Database.Models;
 
-public record WorkoutLog(int Id, Guid? UserId, DateTime ExerciseDate, int Pushups, int Squats, int Abs)
+public class WorkoutLog
 {
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public int Id { get; set; }
+    public required string UserId { get; set; }
+    public DateTime ExerciseDate { get; set; }
+    public int Pushups { get; set; }
+    public int Squats { get; set; }
+    public int Abs { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
