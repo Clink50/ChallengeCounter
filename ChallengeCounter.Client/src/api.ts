@@ -8,7 +8,9 @@ export interface WorkoutLogDto {
   abs: number;
 }
 
-function getUserId() {
+// In components, prefer using the Pinia user store for reactivity.
+export function getUserId() {
+  // This fallback is for non-component usage (e.g., API calls outside setup)
   return localStorage.getItem('username') || '';
 }
 

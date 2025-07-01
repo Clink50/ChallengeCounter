@@ -1,25 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { getLeaderboard } from '../api';
+import { onMounted, watch } from 'vue';
+import { useProgressStore, useUserStore } from '../store';
 
 const props = defineProps<{ year: number; month: number }>();
-const leaderboard = ref<any[]>([]);
-const loading = ref(false);
+const userStore = useUserStore();
+const progressStore = useProgressStore();
 
-const fetchLeaderboard = async () => {
-  loading.value = true;
-  leaderboard.value = await getLeaderboard(props.year, props.month);
-  loading.value = false;
-};
+const fetch = () => progressStore.fetchLeaderboard(props.year, props.month);
 
-onMounted(fetchLeaderboard);
-watch(() => [props.year, props.month], fetchLeaderboard);
+onMounted(fetch);
+watch([() => props.year, () => props.month, () => userStore.username], fetch);
 </script>
 
 <template>
   <div class="mb-4 rounded-xl bg-gray-800/90 p-6 shadow-lg">
     <h2 class="mb-4 text-lg font-bold text-green-400">Leaderboard</h2>
-    <div v-if="loading" class="py-4 text-center text-gray-400">Loading...</div>
+    <div v-if="progressStore.loadingLeaderboard" class="py-4 text-center text-gray-400">
+      Loading...
+    </div>
     <div v-else class="overflow-x-auto">
       <table class="min-w-full text-sm">
         <thead>
@@ -34,7 +32,7 @@ watch(() => [props.year, props.month], fetchLeaderboard);
         </thead>
         <tbody class="text-center">
           <tr
-            v-for="row in leaderboard"
+            v-for="row in progressStore.leaderboard as any[]"
             :key="row.userId"
             class="transition-colors hover:bg-gray-700"
           >
@@ -47,7 +45,7 @@ watch(() => [props.year, props.month], fetchLeaderboard);
           </tr>
         </tbody>
       </table>
-      <div v-if="leaderboard.length === 0" class="py-4 text-center text-gray-400">
+      <div v-if="progressStore.leaderboard.length === 0" class="py-4 text-center text-gray-400">
         No data for this month.
       </div>
     </div>

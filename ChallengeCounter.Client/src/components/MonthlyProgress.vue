@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { getMonthly, getGoal, setGoal } from '../api';
+import { useGoalStore, useProgressStore, useUserStore } from '../store';
 import GoalDialog from './GoalDialog.vue';
+
+const userStore = useUserStore();
+const progressStore = useProgressStore();
+const goalStore = useGoalStore();
+
+const emit = defineEmits(['monthYearChanged']);
 
 const now = new Date();
 const currentYear = now.getFullYear();
@@ -10,89 +16,59 @@ const currentDay = now.getDate();
 
 const selectedYear = ref(currentYear);
 const selectedMonth = ref(currentMonth);
-const monthly = ref({
-  pushups: 0,
-  squats: 0,
-  abs: 0,
-  sets: 0,
-  year: currentYear,
-  month: currentMonth,
-});
 const daysInMonth = ref(new Date(currentYear, currentMonth, 0).getDate());
 
-const goal = ref({ pushupsGoal: 100, squatsGoal: 100, absGoal: 100 }); // daily goals
 const monthlyGoal = ref({ pushups: 0, squats: 0, abs: 0 });
-const dailyGoal = ref({ pushups: 0, squats: 0, abs: 0 });
 const showGoalDialog = ref(false);
-
-const emit = defineEmits(['monthYearChanged']);
-
-const fetchMonthly = async () => {
-  const data = await getMonthly(selectedYear.value, selectedMonth.value);
-  monthly.value = {
-    ...data,
-    year: data.year || selectedYear.value,
-    month: data.month || selectedMonth.value,
-  };
-  daysInMonth.value = new Date(monthly.value.year, monthly.value.month, 0).getDate();
-  emit('monthYearChanged', { year: monthly.value.year, month: monthly.value.month });
-};
-
-const fetchGoal = async () => {
-  const data = await getGoal(selectedYear.value, selectedMonth.value);
-  debugger;
-  if (data) {
-    goal.value = {
-      pushupsGoal: data.pushupsGoal,
-      squatsGoal: data.squatsGoal,
-      absGoal: data.absGoal,
-    };
-  } else {
-    goal.value = { pushupsGoal: 100, squatsGoal: 100, absGoal: 100 };
-  }
-  calcMonthlyGoal();
-};
 
 const calcMonthlyGoal = () => {
   monthlyGoal.value = {
-    pushups: goal.value.pushupsGoal * daysInMonth.value,
-    squats: goal.value.squatsGoal * daysInMonth.value,
-    abs: goal.value.absGoal * daysInMonth.value,
+    pushups: goalStore.goal.pushupsGoal * daysInMonth.value,
+    squats: goalStore.goal.squatsGoal * daysInMonth.value,
+    abs: goalStore.goal.absGoal * daysInMonth.value,
   };
 };
 
-const saveGoal = async () => {
-  await setGoal({
-    year: selectedYear.value,
-    month: selectedMonth.value,
-    pushupsGoal: goal.value.pushupsGoal,
-    squatsGoal: goal.value.squatsGoal,
-    absGoal: goal.value.absGoal,
-  });
-  fetchGoal();
-};
+onMounted(async () => {
+  await progressStore.fetchMonthly(selectedYear.value, selectedMonth.value);
+  await goalStore.fetchGoal(selectedYear.value, selectedMonth.value);
+  calcMonthlyGoal();
 
-onMounted(() => {
-  fetchMonthly();
-  fetchGoal().then(() => {
-    // If no daily goal set, show dialog
-    if (!goal.value.pushupsGoal && !goal.value.squatsGoal && !goal.value.absGoal) {
-      goal.value = { pushupsGoal: 100, squatsGoal: 100, absGoal: 100 };
-      showGoalDialog.value = true;
-    }
-  });
+  if (!goalStore.goal.pushupsGoal && !goalStore.goal.squatsGoal && !goalStore.goal.absGoal) {
+    goalStore.saveGoal({
+      year: selectedYear.value,
+      month: selectedMonth.value,
+      pushupsGoal: 100,
+      squatsGoal: 100,
+      absGoal: 100,
+    });
+    showGoalDialog.value = true;
+  }
 });
-watch([selectedYear, selectedMonth], () => {
-  fetchMonthly();
-  fetchGoal();
+
+watch([selectedYear, selectedMonth, () => userStore.username], () => {
+  progressStore.fetchMonthly(selectedYear.value, selectedMonth.value);
+  goalStore.fetchGoal(selectedYear.value, selectedMonth.value).then(calcMonthlyGoal);
 });
+
+watch(() => goalStore.goal, calcMonthlyGoal, { deep: true });
 
 const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
-function handleGoalSave(newGoal: { pushupsGoal: number; squatsGoal: number; absGoal: number }) {
-  goal.value = newGoal;
-  saveGoal();
+async function handleGoalSave(newGoal: {
+  pushupsGoal: number;
+  squatsGoal: number;
+  absGoal: number;
+}) {
+  await goalStore.saveGoal({
+    year: selectedYear.value,
+    month: selectedMonth.value,
+    pushupsGoal: newGoal.pushupsGoal,
+    squatsGoal: newGoal.squatsGoal,
+    absGoal: newGoal.absGoal,
+  });
+  calcMonthlyGoal();
   showGoalDialog.value = false;
 }
 </script>
@@ -157,46 +133,69 @@ function handleGoalSave(newGoal: { pushupsGoal: number; squatsGoal: number; absG
     <div class="mb-2">
       <div class="mb-1 flex justify-between text-sm">
         <span>Pushups</span>
-        <span>{{ monthly.pushups }} / {{ daysInMonth * 100 }}</span>
+        <span
+          >{{ progressStore.monthly.pushups }} /
+          {{ daysInMonth * goalStore.goal.pushupsGoal }}</span
+        >
       </div>
       <div class="h-3 w-full rounded bg-gray-700">
         <div
           class="h-3 rounded bg-blue-500 transition-all"
-          :style="{ width: Math.min(100, (monthly.pushups / (daysInMonth * 100)) * 100) + '%' }"
+          :style="{
+            width:
+              Math.min(
+                100,
+                (progressStore.monthly.pushups / (daysInMonth * goalStore.goal.pushupsGoal)) * 100
+              ) + '%',
+          }"
         ></div>
       </div>
     </div>
     <div class="mb-2">
       <div class="mb-1 flex justify-between text-sm">
         <span>Squats</span>
-        <span>{{ monthly.squats }} / {{ daysInMonth * 100 }}</span>
+        <span
+          >{{ progressStore.monthly.squats }} / {{ daysInMonth * goalStore.goal.squatsGoal }}</span
+        >
       </div>
       <div class="h-3 w-full rounded bg-gray-700">
         <div
           class="h-3 rounded bg-green-500 transition-all"
-          :style="{ width: Math.min(100, (monthly.squats / (daysInMonth * 100)) * 100) + '%' }"
+          :style="{
+            width:
+              Math.min(
+                100,
+                (progressStore.monthly.squats / (daysInMonth * goalStore.goal.squatsGoal)) * 100
+              ) + '%',
+          }"
         ></div>
       </div>
     </div>
     <div class="mb-2">
       <div class="mb-1 flex justify-between text-sm">
         <span>Abs</span>
-        <span>{{ monthly.abs }} / {{ daysInMonth * 100 }}</span>
+        <span>{{ progressStore.monthly.abs }} / {{ daysInMonth * goalStore.goal.absGoal }}</span>
       </div>
       <div class="h-3 w-full rounded bg-gray-700">
         <div
           class="h-3 rounded bg-pink-500 transition-all"
-          :style="{ width: Math.min(100, (monthly.abs / (daysInMonth * 100)) * 100) + '%' }"
+          :style="{
+            width:
+              Math.min(
+                100,
+                (progressStore.monthly.abs / (daysInMonth * goalStore.goal.absGoal)) * 100
+              ) + '%',
+          }"
         ></div>
       </div>
     </div>
     <div class="mt-4 text-sm text-gray-400">
-      Sets logged: <span class="font-semibold text-white">{{ monthly.sets }}</span>
+      Sets logged: <span class="font-semibold text-white">{{ progressStore.monthly.sets }}</span>
     </div>
   </div>
   <GoalDialog
     :show="showGoalDialog"
-    :initialGoal="goal"
+    :initialGoal="goalStore.goal"
     @close="showGoalDialog = false"
     @save="handleGoalSave"
   />

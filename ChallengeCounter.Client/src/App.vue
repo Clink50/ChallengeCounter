@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useProgressStore, useUserStore } from './store';
+
 import HistoryTable from './components/HistoryTable.vue';
 import Leaderboard from './components/Leaderboard.vue';
 import LogSetForm from './components/LogSetForm.vue';
@@ -7,17 +9,15 @@ import MonthlyProgress from './components/MonthlyProgress.vue';
 import TodayProgress from './components/TodayProgress.vue';
 import UserLogin from './components/UserLogin.vue';
 
-const hasUsername = computed(() => !!localStorage.getItem('username'));
-const showLogModal = ref(false);
+import { getUserId } from './api';
 
+const showLogModal = ref(false);
 const selectedYear = ref(new Date().getFullYear());
 const selectedMonth = ref(new Date().getMonth() + 1);
 
-// Refs to trigger refresh
-const monthlyKey = ref(0);
-const todayKey = ref(0);
-const historyKey = ref(0);
-const leaderboardKey = ref(0);
+const userStore = useUserStore();
+const progressStore = useProgressStore();
+const hasUsername = computed(() => !!userStore.username);
 
 function handleMonthYearChanged({ year, month }: { year: number; month: number }) {
   selectedYear.value = year;
@@ -25,12 +25,11 @@ function handleMonthYearChanged({ year, month }: { year: number; month: number }
 }
 
 function handleLog() {
-  // Close modal and refresh all cards
   showLogModal.value = false;
-  monthlyKey.value++;
-  todayKey.value++;
-  historyKey.value++;
-  leaderboardKey.value++;
+  progressStore.fetchToday();
+  progressStore.fetchMonthly(selectedYear.value, selectedMonth.value);
+  progressStore.fetchLeaderboard(selectedYear.value, selectedMonth.value);
+  progressStore.fetchHistory();
 }
 </script>
 
@@ -41,13 +40,14 @@ function handleLog() {
       class="sticky top-0 z-20 flex w-full items-center justify-between bg-gray-900 px-4 py-6 shadow"
     >
       <h1 class="text-2xl font-bold tracking-tight">Challenge Counter</h1>
+      <h2>Welcome, {{ getUserId() }}!</h2>
       <!-- Optionally add a dark mode toggle or user info here -->
     </header>
     <main class="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-2 py-6">
-      <TodayProgress :key="todayKey" />
-      <Leaderboard :key="leaderboardKey" :year="selectedYear" :month="selectedMonth" />
-      <MonthlyProgress :key="monthlyKey" @monthYearChanged="handleMonthYearChanged" />
-      <HistoryTable :key="historyKey" />
+      <TodayProgress />
+      <Leaderboard :year="selectedYear" :month="selectedMonth" />
+      <MonthlyProgress @monthYearChanged="handleMonthYearChanged" />
+      <HistoryTable />
     </main>
     <!-- Floating Action Button -->
     <button

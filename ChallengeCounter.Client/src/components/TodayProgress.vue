@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { getToday } from '../api';
+import { onMounted, watch } from 'vue';
+import { useGoalStore, useProgressStore, useUserStore } from '../store';
 
-const today = ref({ pushups: 0, squats: 0, abs: 0, sets: 0 });
+const userStore = useUserStore();
+const progressStore = useProgressStore();
+const goalStore = useGoalStore();
 
-const fetchToday = async () => {
-  today.value = await getToday();
-};
-
-onMounted(fetchToday);
+onMounted(() => {
+  progressStore.fetchToday();
+  goalStore.fetchGoal();
+});
+watch(
+  () => userStore.username,
+  () => {
+    progressStore.fetchToday();
+    goalStore.fetchGoal();
+  }
+);
 </script>
 
 <template>
@@ -17,41 +25,49 @@ onMounted(fetchToday);
     <div class="mb-2">
       <div class="mb-1 flex justify-between text-sm">
         <span>Pushups</span>
-        <span>{{ today.pushups }} / 100</span>
+        <span>{{ progressStore.today.pushups }} / {{ goalStore.goal.pushupsGoal }}</span>
       </div>
       <div class="h-3 w-full rounded bg-gray-700">
         <div
           class="h-3 rounded bg-blue-500 transition-all"
-          :style="{ width: Math.min(100, (today.pushups / 100) * 100) + '%' }"
+          :style="{
+            width:
+              Math.min(100, (progressStore.today.pushups / goalStore.goal.pushupsGoal) * 100) + '%',
+          }"
         ></div>
       </div>
     </div>
     <div class="mb-2">
       <div class="mb-1 flex justify-between text-sm">
         <span>Squats</span>
-        <span>{{ today.squats }} / 100</span>
+        <span>{{ progressStore.today.squats }} / {{ goalStore.goal.squatsGoal }}</span>
       </div>
       <div class="h-3 w-full rounded bg-gray-700">
         <div
           class="h-3 rounded bg-green-500 transition-all"
-          :style="{ width: Math.min(100, (today.squats / 100) * 100) + '%' }"
+          :style="{
+            width:
+              Math.min(100, (progressStore.today.squats / goalStore.goal.squatsGoal) * 100) + '%',
+          }"
         ></div>
       </div>
     </div>
     <div class="mb-2">
       <div class="mb-1 flex justify-between text-sm">
         <span>Abs</span>
-        <span>{{ today.abs }} / 100</span>
+        <span>{{ progressStore.today.abs }} / {{ goalStore.goal.absGoal }}</span>
       </div>
       <div class="h-3 w-full rounded bg-gray-700">
         <div
           class="h-3 rounded bg-pink-500 transition-all"
-          :style="{ width: Math.min(100, (today.abs / 100) * 100) + '%' }"
+          :style="{
+            width: Math.min(100, (progressStore.today.abs / goalStore.goal.absGoal) * 100) + '%',
+          }"
         ></div>
       </div>
     </div>
     <div class="mt-4 text-sm text-gray-400">
-      Sets logged: <span class="font-semibold text-white">{{ today.sets }}</span>
+      Sets logged: <span class="font-semibold text-white">{{ progressStore.today.sets }}</span>
     </div>
   </div>
 </template>

@@ -11,7 +11,9 @@ const goal = ref({ ...props.initialGoal });
 watch(
   () => props.show,
   (val) => {
-    if (val) goal.value = { ...props.initialGoal };
+    if (val) {
+      goal.value = { ...props.initialGoal };
+    }
   }
 );
 
@@ -27,10 +29,9 @@ function submit() {
     class="bg-opacity-60 fixed inset-0 z-50 flex items-center justify-center bg-black"
   >
     <div class="w-full max-w-md rounded-xl bg-gray-900 p-6 shadow-xl">
-      <h2 class="mb-4 text-lg font-bold text-yellow-400">Set Your Monthly Goal</h2>
+      <h2 class="mb-4 text-lg font-bold text-yellow-400">Set Your Daily Goal</h2>
       <p class="mb-4 text-gray-300">
-        Set your monthly goal for each exercise. The default is 100 reps per day per exercise. You
-        can change it now or later.
+        Set your daily goal for each exercise. The default is 100 reps per day per exercise.
       </p>
       <form @submit.prevent="submit">
         <div class="mb-2">
