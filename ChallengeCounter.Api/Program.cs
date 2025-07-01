@@ -1,3 +1,4 @@
+using ChallengeCounter.Api;
 using ChallengeCounter.Api.Database;
 using ChallengeCounter.Api.Database.Models;
 using ChallengeCounter.Api.Helpers;
@@ -10,10 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.AddNpgsqlDbContext<WorkoutLogDbContext>(
-    "challengecounter", null, options =>
-        options.UseNpgsql(config => config.MigrationsHistoryTable("migration_history"))
-.UseSnakeCaseNamingConvention());
+builder.AddNpgsqlDbContext<WorkoutLogDbContext>("challengecounter", configureDbContextOptions: options =>
+{
+    options.EnableSensitiveDataLogging();
+    options.EnableDetailedErrors();
+    options.UseNpgsql(options => options.MigrationsHistoryTable("migration_history"))
+        .UseSnakeCaseNamingConvention();
+});
+
+builder.Services.AddHostedService<MigrationHostedService<WorkoutLogDbContext>>();
 
 var app = builder.Build();
 

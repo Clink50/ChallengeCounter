@@ -1,9 +1,10 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var sql = builder.AddPostgres("sql", port: 5432)
-    .WithLifetime(ContainerLifetime.Persistent)
+var sql = builder.AddPostgres("sql")
     .WithImageTag("latest")
-    .WithDataVolume();
+    .WithEnvironment("POSTGRES_DB", "challengecounter")
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var db = sql.AddDatabase("challengecounter");
 
