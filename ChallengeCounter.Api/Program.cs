@@ -142,4 +142,53 @@ app.MapGet("/api/leaderboard", async (int? year, int? month, string? timezone, W
     return Results.Ok(leaderboard);
 });
 
+// POST /api/goal - Set monthly goal for a user
+app.MapPost("/api/goal", async (UserGoalDto dto, WorkoutLogDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(dto.UserId))
+        return Results.BadRequest("Missing userId");
+    var existing = await db.UserGoals.FirstOrDefaultAsync(g => g.UserId.ToLower() == dto.UserId.ToLower() && g.Year == dto.Year && g.Month == dto.Month);
+    if (existing != null)
+    {
+        existing.PushupsGoal = dto.PushupsGoal;
+        existing.SquatsGoal = dto.SquatsGoal;
+        existing.AbsGoal = dto.AbsGoal;
+    }
+    else
+    {
+        db.UserGoals.Add(new UserGoal
+        {
+            UserId = dto.UserId.ToLower(),
+            Year = dto.Year,
+            Month = dto.Month,
+            PushupsGoal = dto.PushupsGoal,
+            SquatsGoal = dto.SquatsGoal,
+            AbsGoal = dto.AbsGoal
+        });
+    }
+    await db.SaveChangesAsync();
+    return Results.Ok();
+});
+
+// GET /api/goal - Get monthly goal for a user
+app.MapGet("/api/goal", async (string userId, int? year, int? month, WorkoutLogDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(userId))
+        return Results.BadRequest("Missing userId");
+    var now = SystemClock.Instance.GetCurrentInstant().InZone(NodaTime.DateTimeZone.Utc);
+    int y = year ?? now.Year;
+    int m = month ?? now.Month;
+    var goal = await db.UserGoals.FirstOrDefaultAsync(g => g.UserId.ToLower() == userId.ToLower() && g.Year == y && g.Month == m);
+    if (goal == null) return Results.NotFound();
+    return Results.Ok(new
+    {
+        goal.UserId,
+        goal.Year,
+        goal.Month,
+        goal.PushupsGoal,
+        goal.SquatsGoal,
+        goal.AbsGoal
+    });
+});
+
 app.Run();

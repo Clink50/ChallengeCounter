@@ -1,3 +1,18 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const input = ref('clink');
+const username = ref(localStorage.getItem('username') || '');
+
+const save = () => {
+  if (input.value.trim()) {
+    localStorage.setItem('username', input.value.trim());
+    username.value = input.value.trim();
+    window.location.reload();
+  }
+};
+</script>
+
 <template>
   <div
     v-if="!username"
@@ -19,18 +34,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-
-const input = ref('');
-const username = ref(localStorage.getItem('username') || '');
-
-const save = () => {
-  if (input.value.trim()) {
-    localStorage.setItem('username', input.value.trim());
-    username.value = input.value.trim();
-    window.location.reload();
-  }
-};
-</script>

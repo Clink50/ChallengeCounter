@@ -88,3 +88,45 @@ export async function getLeaderboard(year?: number, month?: number) {
   }
   return await response.json();
 }
+
+export async function getGoal(year?: number, month?: number) {
+  const userId = getUserId();
+  let url = `${API_BASE}/goal?userId=${encodeURIComponent(userId)}`;
+  if (year) url += `&year=${year}`;
+  if (month) url += `&month=${month}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    if (response.status === 404) {
+      return { pushupsGoal: 0, squatsGoal: 0, absGoal: 0 }; // No goal set
+    }
+    throw new Error('Failed to fetch goal');
+  }
+  return await response.json();
+}
+
+export async function setGoal({
+  year,
+  month,
+  pushupsGoal,
+  squatsGoal,
+  absGoal,
+}: {
+  year: number;
+  month: number;
+  pushupsGoal: number;
+  squatsGoal: number;
+  absGoal: number;
+}) {
+  const userId = getUserId();
+  const response = await fetch(`${API_BASE}/goal`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, year, month, pushupsGoal, squatsGoal, absGoal }),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to set goal');
+  }
+
+  // No data to return, just confirmation of success
+  return;
+}
