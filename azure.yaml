@@ -1,0 +1,6 @@
+name: challenge-counter
+services:
+  app:
+    language: dotnet
+    project: ./ChallengeCounter.AppHost/ChallengeCounter.AppHost.csproj
+    host: containerapp

@@ -5,16 +5,15 @@ using ChallengeCounter.Api.Models;
 
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
-using NodaTime.TimeZones;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<WorkoutLogDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), config =>
-        config.MigrationsHistoryTable("migration_history"))
-    .UseSnakeCaseNamingConvention());
+builder.AddNpgsqlDbContext<WorkoutLogDbContext>(
+    "challengecounter", null, options =>
+        options.UseNpgsql(config => config.MigrationsHistoryTable("migration_history"))
+.UseSnakeCaseNamingConvention());
 
 var app = builder.Build();
 
