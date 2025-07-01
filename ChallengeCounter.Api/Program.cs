@@ -11,13 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.AddNpgsqlDbContext<WorkoutLogDbContext>("challengecounter", configureDbContextOptions: options =>
-{
-    options.EnableSensitiveDataLogging();
-    options.EnableDetailedErrors();
-    options.UseNpgsql(options => options.MigrationsHistoryTable("migration_history"))
-        .UseSnakeCaseNamingConvention();
-});
+var connectionString = builder.Configuration.GetConnectionString("challengecounter");
+builder.Services.AddDbContextPool<WorkoutLogDbContext>(dbContextOptionsBuilder =>
+    dbContextOptionsBuilder.UseNpgsql(connectionString, options =>
+        options.MigrationsHistoryTable("migration_history"))
+    .UseSnakeCaseNamingConvention());
+builder.EnrichNpgsqlDbContext<WorkoutLogDbContext>();
 
 builder.Services.AddHostedService<MigrationHostedService<WorkoutLogDbContext>>();
 
