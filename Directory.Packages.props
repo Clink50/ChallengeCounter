@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AspNetVersion>9.0.6</AspNetVersion>
     <AspireToolkitVersion>9.5.0</AspireToolkitVersion>
     <AspireVersion>9.3.1</AspireVersion>
@@ -9,7 +9,6 @@
     <FluentValidationVersion>12.0.0</FluentValidationVersion>
     <OpenTelemetryVersion>1.12.0</OpenTelemetryVersion>
   </PropertyGroup>
-
   <ItemGroup Label="NET">
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(AspNetVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.6.0" />
@@ -18,15 +17,14 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(AspNetVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.6.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="$(AspireVersion)" />
+    <PackageVersion Include="NodaTime" Version="3.2.2" />
   </ItemGroup>
-
   <ItemGroup Label="Services">
     <PackageVersion Include="ErrorOr" Version="2.0.1" />
     <PackageVersion Include="FluentValidation" Version="$(FluentValidationVersion)" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="$(FluentValidationVersion)" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.4.21" />
   </ItemGroup>
-
   <ItemGroup Label="Aspire">
     <!-- Aspire -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="$(AspireVersion)" />
@@ -35,10 +33,8 @@
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="$(AspireVersion)" />
     <PackageVersion Include="Aspire.Npgsql" Version="$(AspireVersion)" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(AspireVersion)" />
-
     <!-- Community Toolkit -->
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.NodeJS.Extensions" Version="$(AspireToolkitVersion)" />
-
     <!-- Open Telemetry -->
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
@@ -46,7 +42,6 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryVersion)" />
   </ItemGroup>
-
   <ItemGroup Label="EF">
     <PackageVersion Include="EFCore.NamingConventions" Version="9.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(EfVersion)" />
